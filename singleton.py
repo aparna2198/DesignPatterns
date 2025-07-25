@@ -9,11 +9,12 @@
 # Has a method get_metrics() to return the entire logged data.
 # Must be thread-safe — multiple services may call it simultaneously.
 
-from collections import defaultdict
+from collections import defaultdict, deque
 import threading
 from concurrent.futures import ThreadPoolExecutor
 import time
 import copy
+import numpy as np
 class MetricsLogger:
     _instance = None
     _lock = threading.Lock()
@@ -21,7 +22,7 @@ class MetricsLogger:
         with cls._lock:
             if cls._instance is None:
                 cls._instance = super().__new__(cls)
-                cls._instance.metrics = defaultdict(list)
+                cls._instance.metrics = defaultdict(lambda: deque(maxlen=10000)) #
                 cls._instance._metrics_lock = threading.Lock()
         return cls._instance
     
@@ -29,38 +30,57 @@ class MetricsLogger:
         with self._metrics_lock:
             self.metrics[metrics_name].append(value)
     
-    def get_metrics(self):
+    def get_metrics(self,):
         with self._metrics_lock:
             return dict(self.metrics) #copy.deepcopy(dict(self.metrics)) (do deepcopy if you dont want you user to mutate internal state)
 
-logger = MetricsLogger()
-logger.log("latency", 100)
+    def get_metrics_avg(self, metrics_name:str)->float:
+        with self._metrics_lock:
+            try:
+                metrics_values = self.metrics[metrics_name]
+                return sum(metrics_values)/len(metrics_values)
+            except ZeroDivisionError as err:
+                print(f"No values are present for metrics {metrics_name}")
+                
 
-snapshot = logger.get_metrics()
-snapshot["latency"].append(99999) 
-print(logger.get_metrics()) 
+    
+    def get_metrics_p95(self, metrics_name):
+        with self._metrics_lock:
+            metrics_values = self.metrics[metrics_name]
+            return np.percentile(metrics_values,95)
+    
+    def get_metrics_count(self, metrics_name):
+        with self._metrics_lock:
+            metrics_values = self.metrics[metrics_name]
+            return len(metrics_values)
 
-# instances = []
-# # Thread target function
-# def simulate_thread_work(i):
-#     logger = MetricsLogger()
-#     instances.append(id(logger))
-#     logger.log("payment_latency_ms", 90 + i * 2.5)
-#     logger.log("db_connect", 0.5 + i * 0.01)
-#     return logger.get_metrics()
+instances = []
+# Thread target function
+def simulate_thread_work(i):
+    logger = MetricsLogger()
+    instances.append(id(logger))
+    logger.log("payment_latency_ms", 90 + i * 2.5)
+    logger.log("db_connect", 0.5 + i * 0.01)
+    return logger.get_metrics()
 
-# # Use ThreadPoolExecutor
-# with ThreadPoolExecutor(max_workers=5) as executor:
-#     futures = [executor.submit(simulate_thread_work, i) for i in range(5)]
+# Use ThreadPoolExecutor
+with ThreadPoolExecutor(max_workers=5) as executor:
+    futures = [executor.submit(simulate_thread_work, i) for i in range(5)]
 
-# # Wait for threads to complete and gather results
-# for f in futures:
-#     result = f.result()
+# Wait for threads to complete and gather results
+for f in futures:
+    result = f.result()
 
 # print("\nFinal Metrics:")
-# print(MetricsLogger().get_metrics())
+print(MetricsLogger().get_metrics())
+print('avg', MetricsLogger().get_metrics_avg('payment_latency_ms'))
+print('p95', MetricsLogger().get_metrics_p95('db_connect'))
+# logger = MetricsLogger()
+# logger.log("latency", 100)
 
-
+# snapshot = logger.get_metrics()
+# snapshot["latency"].append(99999) 
+# print(logger.get_metrics()) 
 
 
 
