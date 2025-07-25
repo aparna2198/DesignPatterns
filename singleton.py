@@ -13,7 +13,7 @@ from collections import defaultdict
 import threading
 from concurrent.futures import ThreadPoolExecutor
 import time
-
+import copy
 class MetricsLogger:
     _instance = None
     _lock = threading.Lock()
@@ -31,27 +31,34 @@ class MetricsLogger:
     
     def get_metrics(self):
         with self._metrics_lock:
-            return dict(self.metrics)
+            return dict(self.metrics) #copy.deepcopy(dict(self.metrics)) (do deepcopy if you dont want you user to mutate internal state)
 
-instances = []
-# Thread target function
-def simulate_thread_work(i):
-    logger = MetricsLogger()
-    instances.append(id(logger))
-    logger.log("payment_latency_ms", 90 + i * 2.5)
-    logger.log("db_connect", 0.5 + i * 0.01)
-    return logger.get_metrics()
+logger = MetricsLogger()
+logger.log("latency", 100)
 
-# Use ThreadPoolExecutor
-with ThreadPoolExecutor(max_workers=5) as executor:
-    futures = [executor.submit(simulate_thread_work, i) for i in range(5)]
+snapshot = logger.get_metrics()
+snapshot["latency"].append(99999) 
+print(logger.get_metrics()) 
 
-# Wait for threads to complete and gather results
-for f in futures:
-    result = f.result()
+# instances = []
+# # Thread target function
+# def simulate_thread_work(i):
+#     logger = MetricsLogger()
+#     instances.append(id(logger))
+#     logger.log("payment_latency_ms", 90 + i * 2.5)
+#     logger.log("db_connect", 0.5 + i * 0.01)
+#     return logger.get_metrics()
 
-print("\nFinal Metrics:")
-print(MetricsLogger().get_metrics())
+# # Use ThreadPoolExecutor
+# with ThreadPoolExecutor(max_workers=5) as executor:
+#     futures = [executor.submit(simulate_thread_work, i) for i in range(5)]
+
+# # Wait for threads to complete and gather results
+# for f in futures:
+#     result = f.result()
+
+# print("\nFinal Metrics:")
+# print(MetricsLogger().get_metrics())
 
 
 
