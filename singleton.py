@@ -22,13 +22,16 @@ class MetricsLogger:
             if cls._instance is None:
                 cls._instance = super().__new__(cls)
                 cls._instance.metrics = defaultdict(list)
+                cls._instance._metrics_lock = threading.Lock()
         return cls._instance
     
     def log(self, metrics_name, value):
-        self.metrics[metrics_name].append(value)
+        with self._metrics_lock:
+            self.metrics[metrics_name].append(value)
     
     def get_metrics(self):
-        return dict(self.metrics)
+        with self._metrics_lock:
+            return dict(self.metrics)
 
 instances = []
 # Thread target function
