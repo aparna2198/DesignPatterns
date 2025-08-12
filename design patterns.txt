@@ -1,0 +1,14 @@
+Creational -> how object is being created 
+    singleton
+    builder
+    factory
+
+structural -> how objects releate to each other
+    facade
+    adapter
+
+behavioural -> how objects communicate with each other
+    strategy
+    observer
+
+

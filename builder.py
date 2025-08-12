@@ -13,6 +13,9 @@
 # The build() method should return a dictionary representing the final payload ready to send to Stripe’s API.
 # The builder should allow method chaining.
 
+
+#Builder makes  creating complex objects, partially optional object safe, readable and extensible 
+
 class PaymentIntentBuilder:
     def __init__(self):
         self.payment_methods = []
@@ -21,6 +24,7 @@ class PaymentIntentBuilder:
         self.metadata = None
         self.customer_id = None
         self.metadata = None
+        self.description = None
 
     def set_amount(self, amount):
         self.amount = amount
@@ -47,6 +51,9 @@ class PaymentIntentBuilder:
         return self
     
     def build(self):
+        if self.amount is None or self.currency is None:
+            raise ValueError('Amount and currency are required')
+
         return {
             "amount" : self.amount,
             "currency": self.currency,
@@ -62,7 +69,6 @@ payment_intent = (
         .set_amount(5000)
         .set_currency("usd")
         .set_customer_id("cus_12345")
-        .set_description("Subscription Payment")
         .add_payment_method("card")
         .add_payment_method("apple_pay")
         .set_metadata({"order_id": "order_9876"})
