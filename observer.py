@@ -1,3 +1,7 @@
+# Use Observer Pattern when:
+# Many parts of your system need to react to a single state change.
+# You want to avoid hardcoding notification logic inside the subject.
+
 from abc import ABC, abstractmethod
 
 class Observer(ABC):
@@ -17,7 +21,7 @@ class AnalyticsService(Observer):
     def update(self, event_data):
         print(f"AnalyticsService Notifying users for {event_data}")
 
-class NotificationService:
+class NotificationServiceSubject:
     def __init__(self):
         self.observers = []
     
@@ -31,7 +35,7 @@ class NotificationService:
         for obs in self.observers:
             obs.update(event_data)
 
-notification_service = NotificationService()
+notification_service = NotificationServiceSubject()
 notification_service.attach(Email())
 notification_service.attach(SMS())
 notification_service.attach(AnalyticsService())
