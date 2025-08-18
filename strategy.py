@@ -20,6 +20,11 @@ class UPIPaymentStrategy(PaymentStrategy):
     def pay(self, amount):
         print(f"Paying amount {amount} using UPI")
 
+class CryptoPaymentStrategy(PaymentStrategy):
+    
+    def pay(self, amount):
+        print(f"Paying amount {amount} using crypto")
+
 class Payment:
     def __init__(self, strategy: PaymentStrategy):
         self.strategy = strategy
@@ -35,7 +40,8 @@ class PaymentStrategyFactory:
         mapping = {
             "credit":CreditPaymentStrategy(),
             "debit":DebitPaymentStrategy(),
-            "upi":UPIPaymentStrategy()
+            "upi":UPIPaymentStrategy(),
+            "crypto":CryptoPaymentStrategy()
         }
         return mapping[method]
 
@@ -51,6 +57,8 @@ payment.checkout(100)
 payment.set_strategy(payment_strategy_factory.get_strategy('debit'))
 payment.checkout(200)
 payment.set_strategy(payment_strategy_factory.get_strategy('upi'))
+payment.checkout(300)
+payment.set_strategy(payment_strategy_factory.get_strategy('crypto'))
 payment.checkout(300)
 
 
