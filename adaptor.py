@@ -1,5 +1,6 @@
 
 
+# The Adapter Pattern lets your code talk to external systems with different interfaces as if they were all the same — like plugging any charger into any wall with the right adapter.
 class PaymentProcessor:
     def pay(self, amount):
         raise NotImplementedError
