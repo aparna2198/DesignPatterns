@@ -45,8 +45,6 @@ payment.checkout(111)
 payment.set_strategy(razor)
 payment.checkout(2000)
 
-# stripe.pay(111)
-# razor.pay(123)
 
 
 

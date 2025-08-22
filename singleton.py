@@ -54,7 +54,7 @@ class MetricsLogger:
     # def __init__(self, exporters:list) -> None:
     #     self.exporters = exporters
 
-    def __new__(cls,exporters:None):
+    def __new__(cls,exporters=None):
         with cls._lock:
             if cls._instance is None:
                 cls._instance = super().__new__(cls)
